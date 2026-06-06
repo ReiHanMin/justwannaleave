@@ -1,0 +1,106 @@
+diff --git a/node_modules/next/dist/build/generate-build-id.js b/node_modules/next/dist/build/generate-build-id.js
+index 846c686..59b217a 100644
+--- a/node_modules/next/dist/build/generate-build-id.js
++++ b/node_modules/next/dist/build/generate-build-id.js
+@@ -9,7 +9,9 @@ Object.defineProperty(exports, "generateBuildId", {
+     }
+ });
+ async function generateBuildId(generate, fallback) {
+-    let buildId = await generate();
++    // Next.js 16.1.6 regression: config.generateBuildId may be undefined when not
++    // set by the user. Fall through to the fallback (nanoid) in that case.
++    let buildId = typeof generate === 'function' ? await generate() : null;
+     // If there's no buildId defined we'll fall back
+     if (buildId === null) {
+         // We also create a new buildId if it contains the word `ad` to avoid false
+diff --git a/node_modules/next/dist/build/swc/index.js b/node_modules/next/dist/build/swc/index.js
+index 7361f28..d2ec9b2 100644
+--- a/node_modules/next/dist/build/swc/index.js
++++ b/node_modules/next/dist/build/swc/index.js
+@@ -453,7 +453,7 @@ function rustifyOptionEnv(env) {
+             value
+         }));
+ }
+-const normalizePathOnWindows = (p)=>_path.default.sep === '\\' ? p.replace(/\\/g, '/') : p;
++const normalizePathOnWindows = (p)=>p == null ? p : (_path.default.sep === '\\' ? p.replace(/\\/g, '/') : p);
+ // TODO(sokra) Support wasm option.
+ function bindingToApi(binding, _wasm) {
+     const cancel = new class Cancel extends Error {
+@@ -646,6 +646,10 @@ function bindingToApi(binding, _wasm) {
+         let nextConfigSerializable = {
+             ...nextConfig
+         };
++        // Next.js 16.1.6 regression: distDirRoot may be undefined. Fall back to distDir.
++        if (nextConfigSerializable.distDirRoot == null) {
++            nextConfigSerializable.distDirRoot = nextConfigSerializable.distDir || '.next';
++        }
+         // These values are never read by Turbopack and are potentially non-serializable.
+         nextConfigSerializable.exportPathMap = {};
+         nextConfigSerializable.generateBuildId = nextConfigSerializable.generateBuildId && {};
+diff --git a/node_modules/next/dist/build/turbopack-build/impl.js b/node_modules/next/dist/build/turbopack-build/impl.js
+index 3fe4a81..a8244ce 100644
+--- a/node_modules/next/dist/build/turbopack-build/impl.js
++++ b/node_modules/next/dist/build/turbopack-build/impl.js
+@@ -69,10 +69,20 @@ async function turbopackBuild() {
+     const dev = false;
+     const supportedBrowsers = (0, _utils2.getSupportedBrowsers)(dir, dev);
+     const persistentCaching = (0, _utils.isFileSystemCacheEnabledForBuild)(config);
+-    const rootPath = ((_config_turbopack = config.turbopack) == null ? void 0 : _config_turbopack.root) || config.outputFileTracingRoot || dir;
++    // Next.js 16.1.6 regression: findRootDirAndLockFiles may walk up to a wrong
++    // ancestor directory (e.g. a sibling project's lock file).  Force rootPath to
++    // the project dir so Turbopack's distDirRoot validation always passes.
++    const rootPath = dir;
++    config.outputFileTracingRoot = dir;
++    if (!config.turbopack) config.turbopack = {};
++    config.turbopack.root = dir;
++    // Next.js 16.1.6 regression: distDirRoot is not set in config. Set it now.
++    if (config.distDirRoot == null) {
++        config.distDirRoot = config.distDir || '.next';
++    }
+     const project = await bindings.turbo.createProject({
+-        rootPath: ((_config_turbopack1 = config.turbopack) == null ? void 0 : _config_turbopack1.root) || config.outputFileTracingRoot || dir,
+-        projectPath: (0, _normalizepath.normalizePath)(_path.default.relative(rootPath, dir) || '.'),
++        rootPath: dir,
++        projectPath: '.',
+         distDir,
+         nextConfig: config,
+         watch: {
+diff --git a/node_modules/next/dist/server/config.js b/node_modules/next/dist/server/config.js
+index 52f824b..c8da8fc 100644
+--- a/node_modules/next/dist/server/config.js
++++ b/node_modules/next/dist/server/config.js
+@@ -679,6 +679,7 @@ function warnCustomizedOption(config, key, defaultValue, customMessage, configFi
+         result.deploymentId = process.env.NEXT_DEPLOYMENT_ID;
+     }
+     const tracingRoot = result == null ? void 0 : result.outputFileTracingRoot;
++
+     const turbopackRoot = result == null ? void 0 : (_result_turbopack1 = result.turbopack) == null ? void 0 : _result_turbopack1.root;
+     // If both provided, validate they match. If not, use outputFileTracingRoot.
+     if (tracingRoot && turbopackRoot && tracingRoot !== turbopackRoot) {
+diff --git a/node_modules/next/dist/server/dev/hot-reloader-turbopack.js b/node_modules/next/dist/server/dev/hot-reloader-turbopack.js
+index 94480f2..967e4b4 100644
+--- a/node_modules/next/dist/server/dev/hot-reloader-turbopack.js
++++ b/node_modules/next/dist/server/dev/hot-reloader-turbopack.js
+@@ -174,10 +174,19 @@ async function createHotReloaderTurbopack(opts, serverFields, distDir, resetFetc
+     }
+     const supportedBrowsers = (0, _utils3.getSupportedBrowsers)(projectPath, dev);
+     const currentNodeJsVersion = process.versions.node;
+-    const rootPath = ((_opts_nextConfig_turbopack = opts.nextConfig.turbopack) == null ? void 0 : _opts_nextConfig_turbopack.root) || opts.nextConfig.outputFileTracingRoot || projectPath;
++    // Next.js 16.1.6 regression: force rootPath = projectPath to prevent
++    // Turbopack distDirRoot validation failure when a stale ancestor lock file
++    // causes findRootDirAndLockFiles to return a wrong root directory.
++    const rootPath = projectPath;
++    opts.nextConfig.outputFileTracingRoot = projectPath;
++    if (!opts.nextConfig.turbopack) opts.nextConfig.turbopack = {};
++    opts.nextConfig.turbopack.root = projectPath;
++    if (opts.nextConfig.distDirRoot == null) {
++        opts.nextConfig.distDirRoot = opts.nextConfig.distDir || '.next';
++    }
+     const project = await bindings.turbo.createProject({
+-        rootPath,
+-        projectPath: (0, _normalizepath.normalizePath)((0, _path.relative)(rootPath, projectPath) || '.'),
++        rootPath: projectPath,
++        projectPath: '.',
+         distDir,
+         nextConfig: opts.nextConfig,
+         watch: {
