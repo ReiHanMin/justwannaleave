@@ -26,6 +26,7 @@
   --tier-green: #3f7d4f;
   --tier-amber: #d39b2c;
   --tier-red:   #bb472f;
+  --tier-gray:  #a89f8d;
 
   --maxw: 1180px;
   --r:    14px;
@@ -190,6 +191,15 @@ button { font-family: inherit; cursor: pointer; }
 .stat__num .u { color: var(--gold); }
 .stat__lab { margin-top: 12px; font-size: 15px; color: #cfc6b3; max-width: 30ch; }
 
+/* ---- DEADLINE STRIP ---------------------------------------------------- */
+.dstrip { background: var(--terra); color: #fdf6ee; }
+.dstrip__in { display: flex; align-items: center; gap: 26px; padding: 13px 24px; flex-wrap: wrap; }
+.dstrip__label { font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; border: 1px solid rgba(253,246,238,.5); border-radius: 999px; padding: 4px 11px; flex: none; }
+.dstrip__item { display: inline-flex; align-items: baseline; gap: 9px; font-size: 14px; color: inherit; text-decoration: none; }
+.dstrip__item b { font-weight: 700; }
+a.dstrip__item:hover b { text-decoration: underline; }
+.dstrip__when { font-family: var(--font-mono), ui-monospace, monospace; font-size: 12px; opacity: .85; white-space: nowrap; }
+
 /* ---- COUNTRY CARDS ----------------------------------------------------- */
 .sec-head { margin-bottom: 44px; max-width: 60ch; }
 .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
@@ -301,9 +311,13 @@ button { font-family: inherit; cursor: pointer; }
 .region.is-active polygon { stroke: var(--ink); stroke-width: 2.5; }
 .map-svg.has-active .region:not(.is-active) { opacity: .42; }
 .region__lab { font-family: var(--font-mono), ui-monospace, monospace; font-size: 9px; fill: rgba(255,255,255,.92); pointer-events: none; letter-spacing: .02em; text-anchor: middle; font-weight: 700; }
-.tier-green-f { fill: var(--tier-green); }
-.tier-amber-f { fill: var(--tier-amber); }
-.tier-red-f   { fill: var(--tier-red); }
+/* region status: live = bando open, soon = agency verified, unknown = unverified */
+.tier-live-f    { fill: var(--tier-green); }
+.tier-soon-f    { fill: var(--tier-amber); }
+.tier-unknown-f { fill: var(--tier-gray); }
+.tier-live-bg    { background: var(--tier-green); }
+.tier-soon-bg    { background: var(--tier-amber); }
+.tier-unknown-bg { background: var(--tier-gray); }
 .legend { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line-soft); }
 .legend__row { display: flex; align-items: center; gap: 11px; font-size: 14px; color: var(--ink-soft); }
 .legend__sw { width: 16px; height: 16px; border-radius: 4px; flex: none; }
@@ -322,7 +336,7 @@ button { font-family: inherit; cursor: pointer; }
 .rpanel__tierbar { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; padding: 6px 12px; border-radius: 999px; align-self: flex-start; }
 .rpanel__tierbar.green { background: var(--green-soft); color: var(--green-deep); }
 .rpanel__tierbar.amber { background: #f4e9cf; color: #8a6310; }
-.rpanel__tierbar.red   { background: var(--terra-soft); color: var(--terra); }
+.rpanel__tierbar.gray  { background: #e8e3d7; color: var(--ink-soft); }
 .rpanel__tierbar .d { width: 9px; height: 9px; border-radius: 50%; }
 .rpanel__name { font-family: var(--font-display), Georgia, serif; font-weight: 800; font-size: 34px; letter-spacing: -0.015em; margin: 16px 0 4px; }
 .rpanel__sub { font-family: var(--font-mono), ui-monospace, monospace; font-size: 12.5px; color: var(--ink-faint); margin: 0 0 22px; }
@@ -333,7 +347,10 @@ button { font-family: inherit; cursor: pointer; }
 .rstat__val { font-family: var(--font-display), Georgia, serif; font-weight: 800; font-size: 26px; color: var(--green); line-height: 1; letter-spacing: -0.01em; }
 .rstat__val.odds { color: var(--ink); }
 .rpanel__note { font-size: 15px; color: var(--ink-soft); line-height: 1.55; margin: 20px 0 0; text-wrap: pretty; }
-.rpanel__cta { margin-top: 22px; }
+.rpanel__cta { margin-top: 22px; align-self: flex-start; }
+.rpanel__verified { font-family: var(--font-mono), ui-monospace, monospace; font-size: 12px; color: var(--green); margin: 16px 0 0; }
+.rpanel__verified a { color: inherit; }
+.rstat__minor { font-size: 16px; color: var(--ink-faint); font-weight: 700; }
 .rpanel__close { position: absolute; top: 18px; right: 18px; background: none; border: 1px solid var(--line); width: 30px; height: 30px; border-radius: 50%; color: var(--ink-soft); font-size: 16px; line-height: 1; display: grid; place-items: center; }
 .rpanel__close:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 

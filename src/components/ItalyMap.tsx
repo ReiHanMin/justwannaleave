@@ -1,11 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { regions, tierMeta } from "@/lib/data";
+import { MAP_GEOMETRY, MAP_VIEWBOX } from "@/lib/map-geometry";
+import type { RegionDSU, RegionStatus } from "@/lib/dsu";
 
-export default function ItalyMap() {
+const STATUS_META: Record<RegionStatus, { label: string; chip: string }> = {
+  live: { label: "2026/27 bando open now", chip: "green" },
+  soon: { label: "Agency verified — bando expected", chip: "amber" },
+  unknown: { label: "Not yet verified by us", chip: "gray" },
+};
+
+function eur(n: number | null): string | null {
+  if (n == null) return null;
+  return "€" + Math.round(n).toLocaleString("en-US");
+}
+
+function fmtDate(iso: string | null): string | null {
+  if (!iso) return null;
+  return new Date(iso + "T00:00:00").toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+export default function ItalyMap({ regions }: { regions: RegionDSU[] }) {
   const [active, setActive] = useState<string | null>(null);
-  const sel = regions.find((r) => r.id === active) ?? null;
+  const byCode = new Map(regions.map((r) => [r.code, r]));
+  const sel = active ? (byCode.get(active) ?? null) : null;
+  const fig = sel?.figures[0] ?? null;
+  const applyUrl =
+    fig?.bando_url ??
+    sel?.agencies.find((a) => a.bando_page_url)?.bando_page_url ??
+    sel?.agencies.find((a) => a.website_url)?.website_url ??
+    null;
 
   return (
     <div className="map-grid">
@@ -14,68 +42,69 @@ export default function ItalyMap() {
         <div className="map-stage">
           <svg
             className={"map-svg" + (active ? " has-active" : "")}
-            viewBox="80 64 462 620"
+            viewBox={MAP_VIEWBOX}
             role="img"
-            aria-label="Map of Italy divided by region, colour-coded by scholarship funding odds"
+            aria-label="Map of Italy by region, colour-coded by 2026/27 scholarship bando status"
           >
-            {regions.map((r) => (
-              <g
-                key={r.id}
-                className={"region" + (active === r.id ? " is-active" : "")}
-                onClick={() => setActive(r.id === active ? null : r.id)}
-                role="button"
-                aria-label={r.name + " — " + tierMeta[r.tier].label}
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setActive(r.id === active ? null : r.id);
-                  }
-                }}
-              >
-                <polygon className={"tier-" + r.tier + "-f"} points={r.points} />
-                <text className="region__lab" x={r.label[0]} y={r.label[1]}>
-                  {r.id}
-                </text>
-              </g>
-            ))}
+            {MAP_GEOMETRY.map((g) => {
+              const data = byCode.get(g.code);
+              const status: RegionStatus = data?.status ?? "unknown";
+              return (
+                <g
+                  key={g.code}
+                  className={"region" + (active === g.code ? " is-active" : "")}
+                  onClick={() => setActive(g.code === active ? null : g.code)}
+                  role="button"
+                  aria-label={(data?.name ?? g.code) + " — " + STATUS_META[status].label}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActive(g.code === active ? null : g.code);
+                    }
+                  }}
+                >
+                  <polygon className={`tier-${status}-f`} points={g.points} />
+                  <text className="region__lab" x={g.label[0]} y={g.label[1]}>
+                    {g.code}
+                  </text>
+                </g>
+              );
+            })}
           </svg>
 
           <div className="legend">
-            {Object.entries(tierMeta).map(([k, m]) => (
+            {(Object.keys(STATUS_META) as RegionStatus[]).map((k) => (
               <div className="legend__row" key={k}>
-                <span
-                  className="legend__sw"
-                  style={{ background: `var(--tier-${k})` }}
-                />
-                {m.label}
+                <span className={`legend__sw tier-${k}-bg`} />
+                {STATUS_META[k].label}
               </div>
             ))}
           </div>
         </div>
         <p className="map-hint">
-          ↳ Tap any region for stipend, income threshold &amp; your real odds
+          ↳ Tap any region for verified amounts, deadlines &amp; where to apply
         </p>
       </div>
 
       {/* RIGHT — detail panel */}
       <div className="rpanel">
-        {!sel ? (
+        {!sel && (
           <div className="rpanel__empty">
             <p className="big">
               Pick a region.
               <br />
-              The numbers aren&apos;t the same.
+              The rules aren&apos;t the same.
             </p>
             <p>
-              The DSU stipend, the income (ISEE) ceiling, and your actual odds
-              of being funded all change depending on which region you study in.
+              Italy&apos;s DSU scholarship is run by ~28 regional agencies. Award
+              amounts, income ceilings and deadlines are set region by region —
+              we verify each one against the official bando.
             </p>
-            <p className="arrow-note">
-              ← Start with the green ones if you want certainty.
-            </p>
+            <p className="arrow-note">← Green regions have live 2026/27 bandi.</p>
           </div>
-        ) : (
+        )}
+        {sel && (
           <>
             <button
               className="rpanel__close"
@@ -84,35 +113,96 @@ export default function ItalyMap() {
             >
               ×
             </button>
-            <span className={`rpanel__tierbar ${sel.tier}`}>
-              <span
-                className="d"
-                style={{ background: `var(--tier-${sel.tier})` }}
-              />
-              {tierMeta[sel.tier].label}
+            <span className={"rpanel__tierbar " + STATUS_META[sel.status].chip}>
+              <span className={`d tier-${sel.status}-bg`} />
+              {STATUS_META[sel.status].label}
             </span>
             <h3 className="rpanel__name">{sel.name}</h3>
             <p className="rpanel__sub">
-              DSU regional scholarship · illustrative figures
+              {sel.agencies.length > 0
+                ? sel.agencies.map((a) => a.name).join(" · ")
+                : "Administering agency being confirmed"}
             </p>
-            <div className="rpanel__stats">
-              <div className="rstat">
-                <div className="rstat__lab">Max annual stipend</div>
-                <div className="rstat__val">{sel.stipend}</div>
-              </div>
-              <div className="rstat">
-                <div className="rstat__lab">Income ceiling (ISEE)</div>
-                <div className="rstat__val">{sel.isee}</div>
-              </div>
-              <div className="rstat">
-                <div className="rstat__lab">Eligible applicants funded</div>
-                <div className="rstat__val odds">{sel.odds}</div>
-              </div>
-            </div>
-            <p className="rpanel__note">{sel.note}</p>
-            <a className="btn btn--primary btn--sm rpanel__cta" href="#guides">
-              Read the {sel.name} breakdown <span className="arr">→</span>
-            </a>
+
+            {fig ? (
+              <>
+                <div className="rpanel__stats">
+                  {eur(fig.award_fuori_sede) ? (
+                    <>
+                      <div className="rstat">
+                        <div className="rstat__lab">Away-from-home award ({fig.yearLabel})</div>
+                        <div className="rstat__val">{eur(fig.award_fuori_sede)}</div>
+                      </div>
+                      <div className="rstat">
+                        <div className="rstat__lab">Commuter / local</div>
+                        <div className="rstat__val">
+                          {eur(fig.award_pendolare) ?? "—"}
+                          <span className="rstat__minor"> / {eur(fig.award_in_sede) ?? "—"}</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : fig.isee_ceiling ? (
+                    <>
+                      <div className="rstat">
+                        <div className="rstat__lab">Income ceiling ISEE ({fig.yearLabel})</div>
+                        <div className="rstat__val">{eur(fig.isee_ceiling)}</div>
+                      </div>
+                      <div className="rstat">
+                        <div className="rstat__lab">Asset ceiling ISPE</div>
+                        <div className="rstat__val">{eur(fig.ispe_ceiling) ?? "—"}</div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="rstat">
+                      <div className="rstat__lab">Award amounts</div>
+                      <div className="rstat__val odds">In the bando</div>
+                    </div>
+                  )}
+                  <div className="rstat">
+                    <div className="rstat__lab">Application deadline</div>
+                    <div className="rstat__val odds">
+                      {fmtDate(fig.application_deadline) ?? "See bando"}
+                    </div>
+                  </div>
+                </div>
+
+                {fig.verified_at && (
+                  <p className="rpanel__verified">
+                    ✓ Verified{" "}
+                    {new Date(fig.verified_at).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                    {fig.source_url && (
+                      <>
+                        {" · "}
+                        <a href={fig.source_url} target="_blank" rel="noopener noreferrer">
+                          source ↗
+                        </a>
+                      </>
+                    )}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="rpanel__note">
+                {sel.status === "soon"
+                  ? "The agency is confirmed but its 2026/27 bando hasn't been published (or verified by us) yet. Most bandi drop June–September."
+                  : "We haven't verified this region yet — it's in the research queue. Nothing here is worse or better; we just don't publish numbers we haven't checked."}
+              </p>
+            )}
+
+            {applyUrl && (
+              <a
+                className="btn btn--primary btn--sm rpanel__cta"
+                href={applyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Official bando page <span className="arr">→</span>
+              </a>
+            )}
           </>
         )}
       </div>
