@@ -2,17 +2,38 @@
 
 import { useState } from "react";
 
-type FormState = "idle" | "bad" | "done";
+type FormState = "idle" | "bad" | "fail" | "busy" | "done";
 
 export default function EmailCapture() {
   const [email, setEmail] = useState("");
   const [state, setState] = useState<FormState>("idle");
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
-    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-    setState(ok ? "done" : "bad");
+    if (state === "busy") return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setState("bad");
+      return;
+    }
+    setState("busy");
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      setState(res.ok ? "done" : "fail");
+    } catch {
+      setState("fail");
+    }
   };
+
+  const msg =
+    state === "bad"
+      ? "That doesn't look like an email — mind checking?"
+      : state === "fail"
+        ? "Something broke on our end — give it another try in a minute."
+        : "Free, forever. The guide is the product, not you.";
 
   return (
     <section className="section capture" id="signup">
@@ -58,20 +79,26 @@ export default function EmailCapture() {
                 placeholder="you@email.com"
                 value={email}
                 className={state === "bad" ? "err" : ""}
+                disabled={state === "busy"}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  if (state === "bad") setState("idle");
+                  if (state === "bad" || state === "fail") setState("idle");
                 }}
                 aria-invalid={state === "bad"}
               />
-              <button className="btn btn--primary" type="submit">
-                Get access — it&apos;s free
+              <button
+                className="btn btn--primary"
+                type="submit"
+                disabled={state === "busy"}
+              >
+                {state === "busy" ? "One sec…" : "Get access — it's free"}
               </button>
             </div>
-            <div className={`form__msg${state === "bad" ? " bad" : ""}`}>
-              {state === "bad"
-                ? "That doesn't look like an email — mind checking?"
-                : "Free, forever. The guide is the product, not you."}
+            <div
+              className={`form__msg${state === "bad" || state === "fail" ? " bad" : ""}`}
+              role={state === "bad" || state === "fail" ? "alert" : undefined}
+            >
+              {msg}
             </div>
             <div className="form__reassure">
               🔒 No spam. One email per month. Unsubscribe anytime.

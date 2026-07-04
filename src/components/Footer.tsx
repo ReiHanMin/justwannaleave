@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const links = ["About", "Disclaimer", "Privacy", "Contact"];
 
 export default function Footer() {
@@ -5,14 +7,14 @@ export default function Footer() {
     <footer className="footer">
       <div className="wrap">
         <div className="footer__top">
-          <a className="logo" href="#top">
+          <Link className="logo" href="/">
             justwannaleave<span className="dot">.</span>
-          </a>
+          </Link>
           <div className="footer__links">
             {links.map((l) => (
-              <a key={l} href="#signup">
+              <Link key={l} href="/#signup">
                 {l}
-              </a>
+              </Link>
             ))}
           </div>
         </div>

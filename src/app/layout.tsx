@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Spectral, Hanken_Grotesk, Space_Mono } from "next/font/google";
 import "./globals.css";
+import Nav from "@/components/Nav";
+import Footer from "@/components/Footer";
 
 const spectral = Spectral({
   weight: ["400", "700", "800"],
@@ -25,6 +27,9 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+  ),
   title: "Just Wanna Leave — Plan your exit strategy",
   description:
     "A dozen governments will fund your degree — tuition, sometimes rent and meals too. We did the research so you can actually do it.",
@@ -55,7 +60,9 @@ export default function RootLayout({
       <body
         className={`${spectral.variable} ${hankenGrotesk.variable} ${spaceMono.variable}`}
       >
+        <Nav />
         {children}
+        <Footer />
       </body>
     </html>
   );

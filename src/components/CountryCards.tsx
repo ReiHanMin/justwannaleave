@@ -1,14 +1,7 @@
-"use client";
-
 import Flag from "@/components/Flag";
 import { countries } from "@/lib/data";
 
 export default function CountryCards() {
-  const scrollToGuides = () => {
-    const t = document.querySelector("#guides");
-    if (t) window.scrollTo({ top: (t as HTMLElement).offsetTop - 60, behavior: "smooth" });
-  };
-
   return (
     <section className="section" id="countries">
       <div className="wrap">
@@ -24,7 +17,7 @@ export default function CountryCards() {
         </div>
         <div className="cards">
           {countries.map((c) => (
-            <article className="ccard" key={c.code} onClick={scrollToGuides}>
+            <article className="ccard" key={c.code}>
               <div className="ccard__top">
                 <span className="ccard__flag">
                   <Flag code={c.code} />

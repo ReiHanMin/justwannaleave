@@ -1,4 +1,3 @@
-import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import StatStrip from "@/components/StatStrip";
 import CountryCards from "@/components/CountryCards";
@@ -6,12 +5,12 @@ import MapSection from "@/components/MapSection";
 import Guides from "@/components/Guides";
 import Stories from "@/components/Stories";
 import EmailCapture from "@/components/EmailCapture";
-import Footer from "@/components/Footer";
+
+export const revalidate = 60;
 
 export default function Home() {
   return (
     <>
-      <Nav />
       <Hero />
       <StatStrip />
       <CountryCards />
@@ -19,7 +18,6 @@ export default function Home() {
       <Guides />
       <Stories />
       <EmailCapture />
-      <Footer />
     </>
   );
 }

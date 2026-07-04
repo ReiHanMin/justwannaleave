@@ -141,7 +141,7 @@ button { font-family: inherit; cursor: pointer; }
   transition: color .15s ease;
 }
 .nav__links a:not(.btn):hover { color: var(--ink); }
-.nav__burger { display: none; background: none; border: none; padding: 8px; }
+.nav__burger { display: none; background: none; border: none; padding: 8px; color: var(--ink); }
 
 /* ---- HERO -------------------------------------------------------------- */
 .hero { padding: 72px 0 64px; position: relative; overflow: hidden; }
@@ -200,7 +200,6 @@ button { font-family: inherit; cursor: pointer; }
   padding: 24px 22px 20px;
   display: flex; flex-direction: column;
   transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-  cursor: pointer;
 }
 .ccard:hover { transform: translateY(-4px); box-shadow: 0 22px 44px -30px rgba(40,30,10,.55); border-color: var(--green); }
 .ccard__top { display: flex; align-items: center; justify-content: space-between; }
@@ -337,6 +336,37 @@ button { font-family: inherit; cursor: pointer; }
 .rpanel__cta { margin-top: 22px; }
 .rpanel__close { position: absolute; top: 18px; right: 18px; background: none; border: 1px solid var(--line); width: 30px; height: 30px; border-radius: 50%; color: var(--ink-soft); font-size: 16px; line-height: 1; display: grid; place-items: center; }
 .rpanel__close:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* ---- GUIDES HERO ------------------------------------------------------- */
+.guides-hero { padding: 64px 0 48px; border-bottom: 1px solid var(--line); }
+.guides-empty { color: var(--ink-soft); font-size: 17px; }
+.guides-empty a { color: var(--green); text-decoration: underline; }
+
+/* ---- ARTICLE ----------------------------------------------------------- */
+.article__header { background: var(--paper-2); border-bottom: 1px solid var(--line); padding: 56px 0 48px; }
+.article__header-in { max-width: 740px; }
+.article__back { font-family: var(--font-mono), ui-monospace, monospace; font-size: 13px; color: var(--ink-faint); text-decoration: none; display: inline-block; margin-bottom: 22px; transition: color .15s; }
+.article__back:hover { color: var(--ink); }
+.article__title { font-family: var(--font-display), Georgia, serif; font-weight: 800; font-size: clamp(28px, 4.5vw, 46px); line-height: 1.1; letter-spacing: -0.015em; margin: 14px 0 16px; }
+.article__excerpt { font-size: 19px; color: var(--ink-soft); max-width: 56ch; margin: 0 0 18px; line-height: 1.55; text-wrap: pretty; }
+.article__meta { font-family: var(--font-mono), ui-monospace, monospace; font-size: 12px; color: var(--ink-faint); display: flex; gap: 18px; }
+
+.article__body { max-width: 680px; padding: 56px 0 64px; }
+.article__body p { margin: 0 0 1.4em; font-size: 18px; line-height: 1.7; color: var(--ink-soft); }
+.article__body h2 { font-family: var(--font-display), Georgia, serif; font-weight: 800; font-size: 26px; line-height: 1.15; letter-spacing: -0.01em; margin: 2.4em 0 0.6em; color: var(--ink); }
+.article__body h3 { font-family: var(--font-display), Georgia, serif; font-weight: 700; font-size: 21px; line-height: 1.2; margin: 2em 0 0.5em; color: var(--ink); }
+.article__body blockquote { border-left: 3px solid var(--terra); margin: 1.6em 0; padding: 4px 0 4px 20px; font-family: var(--font-display), Georgia, serif; font-style: italic; font-size: 20px; color: var(--ink); line-height: 1.45; }
+.article__body a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
+.article__body a:hover { color: var(--green-deep); }
+.article__body strong { font-weight: 700; color: var(--ink); }
+
+.callout { background: var(--paper-2); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; margin: 1.6em 0; font-size: 16px; line-height: 1.55; color: var(--ink-soft); }
+.callout--warning { background: #fef3cd; border-color: var(--gold); color: #6b4c00; }
+.callout--tip { background: var(--green-soft); border-color: var(--green); color: var(--green-deep); }
+
+.article__footer { border-top: 1px solid var(--line); padding: 40px 0; background: var(--paper-2); }
+.article__disclaimer { font-family: var(--font-mono), ui-monospace, monospace; font-size: 12px; color: var(--ink-faint); margin: 0 0 22px; max-width: 60ch; }
+.article__cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
 
 /* ---- RESPONSIVE -------------------------------------------------------- */
 @media (max-width: 900px) {
