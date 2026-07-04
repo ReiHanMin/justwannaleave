@@ -3,6 +3,10 @@
 
 import { getSupabase } from "./supabase";
 
+// The academic year the site currently presents. Bump once a year when the
+// new bando cycle starts publishing.
+export const CURRENT_ACADEMIC_YEAR = "2026/27";
+
 export type RegionStatus = "live" | "soon" | "unknown";
 
 export interface RegionAgency {
@@ -120,7 +124,9 @@ export async function getItalyRegions(): Promise<RegionDSU[]> {
       .flatMap((a) => figuresByAgency.get(a.id) ?? [])
       .sort((a, b) => b.yearLabel.localeCompare(a.yearLabel));
 
-    const hasCurrentBando = regionFigures.some((f) => f.yearLabel === "2026/27");
+    const hasCurrentBando = regionFigures.some(
+      (f) => f.yearLabel === CURRENT_ACADEMIC_YEAR
+    );
     const hasVerifiedAgency = regionAgencies.some(
       (a) => a.verification_status === "verified"
     );
@@ -178,5 +184,7 @@ export async function getMaxVerifiedAward(): Promise<number | null> {
     award_fuori_sede: number;
     academic_years: { label: string } | null;
   };
-  return row.academic_years?.label === "2026/27" ? row.award_fuori_sede : null;
+  return row.academic_years?.label === CURRENT_ACADEMIC_YEAR
+    ? row.award_fuori_sede
+    : null;
 }

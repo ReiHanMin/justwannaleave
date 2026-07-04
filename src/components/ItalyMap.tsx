@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MAP_GEOMETRY, MAP_VIEWBOX } from "@/lib/map-geometry";
-import type { RegionDSU, RegionStatus } from "@/lib/dsu";
+import { CURRENT_ACADEMIC_YEAR, type RegionDSU, type RegionStatus } from "@/lib/dsu";
 
 const STATUS_META: Record<RegionStatus, { label: string; chip: string }> = {
   live: { label: "2026/27 bando open now", chip: "green" },
@@ -28,7 +28,9 @@ export default function ItalyMap({ regions }: { regions: RegionDSU[] }) {
   const [active, setActive] = useState<string | null>(null);
   const byCode = new Map(regions.map((r) => [r.code, r]));
   const sel = active ? (byCode.get(active) ?? null) : null;
-  const fig = sel?.figures[0] ?? null;
+  // Only current-year figures render; prior-year baselines stay internal.
+  const fig =
+    sel?.figures.find((f) => f.yearLabel === CURRENT_ACADEMIC_YEAR) ?? null;
   const applyUrl =
     fig?.bando_url ??
     sel?.agencies.find((a) => a.bando_page_url)?.bando_page_url ??
