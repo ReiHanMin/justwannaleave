@@ -23,44 +23,52 @@ export default async function Guides() {
     // Sanity not configured yet — fall back to static data
   }
 
-  if (items.length === 0) {
-    items = fallbackGuides.map((g) => ({
-      href: "/guides",
-      tag: g.tag,
-      tone: g.tone,
-      title: g.title,
-      read: g.read,
-      updated: g.updated,
-    }));
-  }
+  const isFallback = items.length === 0;
 
   return (
     <section className="section" id="guides">
       <div className="wrap">
         <div className="sec-head">
-          <span className="kicker">Latest guides</span>
+          <span className="kicker">
+            {isFallback ? "Guides in the works" : "Latest guides"}
+          </span>
           <h2 className="h-sec">
             The stuff <em>nobody else</em> writes.
           </h2>
           <p className="sec-sub">
             No fluff. No &ldquo;ten reasons to study abroad.&rdquo; Just the
             practical information you need to actually do this.
+            {isFallback &&
+              " These are being written now — sign up below and you'll get each one the day it's published."}
           </p>
         </div>
         <div className="guides">
-          {items.map((g, i) => (
-            <Link className="guide" href={g.href} key={i}>
-              <span className="guide__num">{String(i + 1).padStart(2, "0")}</span>
-              <div className="guide__body">
-                <span className={`tag tag--${g.tone}`}>{g.tag}</span>
-                <h3 className="guide__title">{g.title}</h3>
-                <div className="guide__meta">
-                  {g.read && <span>{g.read} read</span>}
-                  {g.updated && <span>{g.updated}</span>}
-                </div>
-              </div>
-            </Link>
-          ))}
+          {isFallback
+            ? fallbackGuides.map((g, i) => (
+                <article className="guide guide--soon" key={i}>
+                  <span className="guide__num">{String(i + 1).padStart(2, "0")}</span>
+                  <div className="guide__body">
+                    <span className={`tag tag--${g.tone}`}>{g.tag}</span>
+                    <h3 className="guide__title">{g.title}</h3>
+                    <div className="guide__meta">
+                      <span className="guide__soon">Coming soon</span>
+                    </div>
+                  </div>
+                </article>
+              ))
+            : items.map((g, i) => (
+                <Link className="guide" href={g.href} key={i}>
+                  <span className="guide__num">{String(i + 1).padStart(2, "0")}</span>
+                  <div className="guide__body">
+                    <span className={`tag tag--${g.tone}`}>{g.tag}</span>
+                    <h3 className="guide__title">{g.title}</h3>
+                    <div className="guide__meta">
+                      {g.read && <span>{g.read} read</span>}
+                      {g.updated && <span>{g.updated}</span>}
+                    </div>
+                  </div>
+                </Link>
+              ))}
         </div>
       </div>
     </section>

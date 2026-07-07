@@ -1,6 +1,11 @@
 import Link from "next/link";
 
-const links = ["About", "Disclaimer", "Privacy", "Contact"];
+const links = [
+  { label: "Guides", href: "/guides" },
+  { label: "Disclaimer", href: "/disclaimer" },
+  { label: "Privacy", href: "/privacy" },
+  { label: "Contact", href: "mailto:hello@justwannaleave.com" },
+];
 
 export default function Footer() {
   return (
@@ -11,11 +16,17 @@ export default function Footer() {
             justwannaleave<span className="dot">.</span>
           </Link>
           <div className="footer__links">
-            {links.map((l) => (
-              <Link key={l} href="/#signup">
-                {l}
-              </Link>
-            ))}
+            {links.map((l) =>
+              l.href.startsWith("mailto:") ? (
+                <a key={l.label} href={l.href}>
+                  {l.label}
+                </a>
+              ) : (
+                <Link key={l.label} href={l.href}>
+                  {l.label}
+                </Link>
+              )
+            )}
           </div>
         </div>
         <div className="footer__fine">

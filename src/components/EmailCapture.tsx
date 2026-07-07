@@ -46,8 +46,10 @@ export default function EmailCapture() {
             We&apos;ll tell you when it does.
           </h2>
           <p>
-            Sign up and get the full regional breakdown — plus deadline
-            reminders sent before it&apos;s too late to apply.
+            The bando is the official scholarship call each region publishes —
+            new rules, new amounts, new deadlines, every single year. Sign up
+            and we&apos;ll send you deadline reminders before it&apos;s too
+            late to apply.
           </p>
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MAP_GEOMETRY, MAP_VIEWBOX } from "@/lib/map-geometry";
 import { CURRENT_ACADEMIC_YEAR, type RegionDSU, type RegionStatus } from "@/lib/dsu";
 
@@ -26,6 +26,23 @@ function fmtDate(iso: string | null): string | null {
 
 export default function ItalyMap({ regions }: { regions: RegionDSU[] }) {
   const [active, setActive] = useState<string | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // On stacked (mobile) layout the panel sits below the map — bring it into
+  // view on selection, or a tap appears to do nothing.
+  const select = (code: string | null) => {
+    setActive(code);
+    if (code && typeof window !== "undefined" && window.innerWidth <= 900) {
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      requestAnimationFrame(() => {
+        panelRef.current?.scrollIntoView({
+          behavior: reduced ? "auto" : "smooth",
+          block: "nearest",
+        });
+      });
+    }
+  };
+
   const byCode = new Map(regions.map((r) => [r.code, r]));
   const sel = active ? (byCode.get(active) ?? null) : null;
   // Only current-year figures render; prior-year baselines stay internal.
@@ -55,14 +72,14 @@ export default function ItalyMap({ regions }: { regions: RegionDSU[] }) {
                 <g
                   key={g.code}
                   className={"region" + (active === g.code ? " is-active" : "")}
-                  onClick={() => setActive(g.code === active ? null : g.code)}
+                  onClick={() => select(g.code === active ? null : g.code)}
                   role="button"
                   aria-label={(data?.name ?? g.code) + " — " + STATUS_META[status].label}
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
-                      setActive(g.code === active ? null : g.code);
+                      select(g.code === active ? null : g.code);
                     }
                   }}
                 >
@@ -90,7 +107,7 @@ export default function ItalyMap({ regions }: { regions: RegionDSU[] }) {
       </div>
 
       {/* RIGHT — detail panel */}
-      <div className="rpanel">
+      <div className="rpanel" ref={panelRef}>
         {!sel && (
           <div className="rpanel__empty">
             <p className="big">
@@ -103,7 +120,7 @@ export default function ItalyMap({ regions }: { regions: RegionDSU[] }) {
               amounts, income ceilings and deadlines are set region by region —
               we verify each one against the official bando.
             </p>
-            <p className="arrow-note">← Green regions have live 2026/27 bandi.</p>
+            <p className="arrow-note">Start with the green ones — their 2026/27 bandi are open now.</p>
           </div>
         )}
         {sel && (
@@ -146,11 +163,11 @@ export default function ItalyMap({ regions }: { regions: RegionDSU[] }) {
                   ) : fig.isee_ceiling ? (
                     <>
                       <div className="rstat">
-                        <div className="rstat__lab">Income ceiling ISEE ({fig.yearLabel})</div>
+                        <div className="rstat__lab">Income ceiling — ISEE ({fig.yearLabel})</div>
                         <div className="rstat__val">{eur(fig.isee_ceiling)}</div>
                       </div>
                       <div className="rstat">
-                        <div className="rstat__lab">Asset ceiling ISPE</div>
+                        <div className="rstat__lab">Asset ceiling — ISPE</div>
                         <div className="rstat__val">{eur(fig.ispe_ceiling) ?? "—"}</div>
                       </div>
                     </>
@@ -195,6 +212,14 @@ export default function ItalyMap({ regions }: { regions: RegionDSU[] }) {
               </p>
             )}
 
+            {fig && (
+              <p className="rpanel__gloss">
+                ISEE is Italy&apos;s household means-test number — think FAFSA.
+                US applicants get an equivalent (&ldquo;ISEE parificato&rdquo;)
+                calculated from family income documents.
+              </p>
+            )}
+
             {applyUrl && (
               <a
                 className="btn btn--primary btn--sm rpanel__cta"
@@ -202,7 +227,7 @@ export default function ItalyMap({ regions }: { regions: RegionDSU[] }) {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Official bando page <span className="arr">→</span>
+                Official bando page (in Italian) ↗
               </a>
             )}
           </>
